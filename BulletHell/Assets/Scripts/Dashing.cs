@@ -15,7 +15,6 @@ public class Dashing : MonoBehaviour
     public float dashUpwardForce;
     public float maxDashYSpeed;
     public float dashDuration;
-    public float dashes;
     public float maxDashes;
 
     [Header("CameraEffects")]
@@ -52,21 +51,16 @@ public class Dashing : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        if (dashes < maxDashes)
+        if (GameManager.dashes < maxDashes)
         {
-            dashRechargeTimer++;
-        }
-        if(dashRechargeTimer >= dashRechargeInterval)
-        {
-            dashes++;
-            dashRechargeTimer = 0;
+            GameManager.dashes = GameManager.dashes + 0.005f;
         }
     }
     private void Dash()
     {
-        if (dashCdTimer > 0 || dashes == 0) return;
+        if (dashCdTimer > 0 || GameManager.dashes < 1) return;
         else dashCdTimer = dashCd;
-        dashes--;
+        GameManager.dashes--;
 
         pm.dashing = true;
         pm.maxYSpeed = maxDashYSpeed;
