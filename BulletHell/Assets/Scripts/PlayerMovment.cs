@@ -11,6 +11,8 @@ public class PlayerMovment : MonoBehaviour
     public float dashSpeed;
     public float dashSpeedChangeFactor;
 
+    public float wallrunSpeed;
+
     public float maxYSpeed;
 
     public float groundDrag;
@@ -49,9 +51,11 @@ public class PlayerMovment : MonoBehaviour
     {
         walking,
         air,
+        wallrunning,
         dashing
     }
     public bool dashing;
+    public bool wallrunning;
 
     private void Start()
     {
@@ -81,6 +85,11 @@ public class PlayerMovment : MonoBehaviour
     private bool keepMomentum;
     private void StateHandler()
     {
+        if (wallrunning)
+        {
+            state = MovementState.wallrunning;
+            desiredMoveSpeed = wallrunSpeed;
+        }
         if (dashing)
         {
             state = MovementState.dashing;
@@ -166,7 +175,7 @@ public class PlayerMovment : MonoBehaviour
         {
             rb.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
         }
-        rb.useGravity = !OnSlope();
+        if(!wallrunning) rb.useGravity = !OnSlope();
     }
     private void SpeedControl()
     {
