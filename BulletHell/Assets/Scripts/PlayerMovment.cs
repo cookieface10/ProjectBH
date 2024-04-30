@@ -1,3 +1,5 @@
+using GLTF.Schema;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst.CompilerServices;
@@ -7,7 +9,9 @@ public class PlayerMovment : MonoBehaviour
 {
     public CapsuleCollider capsule;
     public CapsuleCollider capsuleBut2;
-    private RaycastHit hit;
+    public GameObject CameraHolder;
+    public GameObject Camera;
+
     [Header("Movement")]
     private float moveSpeed;
     public float walkSpeed;
@@ -87,12 +91,27 @@ public class PlayerMovment : MonoBehaviour
                 JumpTime = true;
 
             }
+
+            if (Input.GetKey(KeyCode.V))
+            {
+                Can_Titanfall();
+            }
         }
         
 
     }
 
-
+    private void Can_Titanfall()
+    {
+        Vector3 _orientation = CameraHolder.transform.rotation.ToEuler();
+        
+        RaycastHit hit;
+        Ray landingRay = new Ray(CameraHolder.transform.position, _orientation);
+        if(Physics.Raycast(landingRay, out hit))
+        {
+                Debug.Log("It found something!");
+        }
+    }
 
 
     private float desiredMoveSpeed;
@@ -238,11 +257,18 @@ public class PlayerMovment : MonoBehaviour
     {
         return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
     }
-
+    
+    private bool hasDone = false;
     private void Update()
     {
 
-
+        if (GameManager.IsTitan && !hasDone)
+        {
+            rb.position = GameManager.TitanLocation;
+            CameraHolder.transform.position = GameManager.TitanLocation;
+            CameraHolder.transform.rotation = GameManager.TitanRotation;
+            hasDone = true;
+        }
 
         //if (GameManager.IsTitan)
         //{
@@ -253,7 +279,7 @@ public class PlayerMovment : MonoBehaviour
 
 
 
-        if(!GameManager.IsTitan)
+        if (!GameManager.IsTitan)
         {
             grounded = Physics.Raycast(transform.position, Vector3.down, playerheight * 0.5f + 0.05f, whatIsGround);
 
@@ -261,7 +287,7 @@ public class PlayerMovment : MonoBehaviour
             SpeedControl();
             StateHandler();
 
-            if (state == MovementState.walking)
+            if (state == MovementState.walking && !GameManager.IsTitan)
             {
                 rb.drag = groundDrag;
             }
@@ -280,7 +306,7 @@ public class PlayerMovment : MonoBehaviour
         
     }
 
-    private bool hasGottenOutOfTitan = true;
+    
     private void FixedUpdate()
     {
         GameManager.IsNearEmbarkableTitan = (titanObj.transform.position - rb.position).magnitude < 10;
@@ -295,16 +321,23 @@ public class PlayerMovment : MonoBehaviour
         }
         if (GameManager.IsTitan)
         {
+            
             capsuleBut2.enabled = false;
             capsule.enabled = false;
-            rb.position = GameManager.TitanLocation;
+            
             this.gameObject.transform.rotation = GameManager.TitanRotation;
             rb.useGravity = false;
             rb.velocity = Vector3.zero;
+            rb.interpolation = RigidbodyInterpolation.None;
+            rb.Sleep();
         }
+
         
+
         else
         {
+            rb.WakeUp();
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
             /*
             if(!hasGottenOutOfTitan && !GameManager.IsTitan)
             {
@@ -314,6 +347,7 @@ public class PlayerMovment : MonoBehaviour
             capsuleBut2.enabled = true;
             rb.useGravity = true;
             capsule.enabled = true;
+            hasDone = false;
         }
         
         if (!GameManager.IsTitan)

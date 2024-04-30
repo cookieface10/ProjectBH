@@ -9,7 +9,7 @@ public class titanLocation : MonoBehaviour
     public Quaternion rotation;
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
         GameManager.TitanLocation = transform.position;
         location = transform.position;

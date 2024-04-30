@@ -18,6 +18,7 @@ public class TitanRotation : MonoBehaviour
     {
         if (GameManager.IsTitan)
         {
+
             mouseX = Input.GetAxisRaw("Mouse X") * Time.deltaTime * sensX;
             mouseY = Input.GetAxisRaw("Mouse Y") * Time.deltaTime * sensY;
             yRotation += mouseX;

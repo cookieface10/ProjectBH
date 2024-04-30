@@ -13,7 +13,7 @@ public class PlayerRotation : MonoBehaviour
 
     RaycastHit hit;
 
-
+    bool hasDone = false;
     void Update()
     {
         if (!GameManager.IsTitan)
@@ -21,11 +21,14 @@ public class PlayerRotation : MonoBehaviour
             mouseX = Input.GetAxisRaw("Mouse X") * Time.deltaTime * sensX;
             mouseY = Input.GetAxisRaw("Mouse Y") * Time.deltaTime * sensY;
             yRotation += mouseX;
-            transform.rotation = Quaternion.Euler(0, yRotation, 0);
+            transform.rotation = Quaternion.Euler(0, yRotation, 0); 
+            hasDone = false;
         }
-        else
+        else if(!hasDone)
         {
+
             transform.rotation = GameManager.TitanRotation;
+            hasDone = true;
         }
     }
 }

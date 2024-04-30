@@ -38,7 +38,7 @@ public class PlayerCam : MonoBehaviour
         }
         else
         {
-            transform.rotation = GameManager.TitanRotation;
+            //transform.rotation = GameManager.TitanRotation;
         }
     }
 
