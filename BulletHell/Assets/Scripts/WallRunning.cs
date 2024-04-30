@@ -22,8 +22,10 @@ public class WallRunning : MonoBehaviour
     public float minJumpHeight;
     private RaycastHit leftWallhit;
     private RaycastHit rightWallhit;
+    private RaycastHit forwardWallHit;
     private bool wallLeft;
     private bool wallRight;
+    private bool wallForward;
 
     [Header("Exiting")]
     private bool exitingWall;
@@ -64,6 +66,7 @@ public class WallRunning : MonoBehaviour
     {
         wallRight = Physics.Raycast(transform.position, orientation.right, out rightWallhit, wallCheckDistance, whatIsWall);
         wallLeft = Physics.Raycast(transform.position, -orientation.right, out leftWallhit, wallCheckDistance, whatIsWall);
+        wallForward = Physics.Raycast(transform.position, orientation.forward, out forwardWallHit, wallCheckDistance, whatIsWall);
     }
 
     private bool AboveGround()
@@ -97,6 +100,27 @@ public class WallRunning : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Space)) WallJump();
 
         }
+
+        if(wallForward && verticalInput > 0 && AboveGround() && !exitingWall)
+        {
+            if (!pm.wallrunning)
+            {
+                StartWallWalk();
+            }
+
+            if (wallRunTimer > 0)
+            {
+                wallRunTimer -= Time.deltaTime;
+            }
+
+            if (wallRunTimer <= 0 && pm.wallrunning)
+            {
+                exitingWall = true;
+                exitWallTimer = exitWallTime;
+            }
+
+            if (Input.GetKeyDown(KeyCode.Space)) WallJump();
+        }
         else if (exitingWall)
         {
             if (pm.wallrunning)
@@ -121,17 +145,28 @@ public class WallRunning : MonoBehaviour
         }
     }
 
+    
+    private void StartWallWalk()
+    {
+        pm.wallrunning = true;
+
+        wallRunTimer = maxWallRunTime;
+
+        rb.velocity = new Vector3(0, 8f, 0);
+        cam.DoFov(90f);
+    }
     private void StartWallRun()
     {
         pm.wallrunning = true;
 
         wallRunTimer = maxWallRunTime;
 
-        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+        rb.velocity = new Vector3(rb.velocity.x, 1f, rb.velocity.z);
 
         cam.DoFov(90f);
-        if (wallLeft) cam.DoTilt(-5f);
-        if (wallRight) cam.DoTilt(5f);
+        if (wallLeft) cam.DoTilt(-15f);
+        if (wallRight) cam.DoTilt(15f);
+        
     }
 
     private void WallRunningMovment()

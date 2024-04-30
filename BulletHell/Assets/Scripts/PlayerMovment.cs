@@ -1,13 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Burst.CompilerServices;
 using UnityEngine;
 
 public class PlayerMovment : MonoBehaviour
 {
+    public CapsuleCollider capsule;
+    public CapsuleCollider capsuleBut2;
+    private RaycastHit hit;
     [Header("Movement")]
     private float moveSpeed;
     public float walkSpeed;
 
+    
     public float dashSpeed;
     public float dashSpeedChangeFactor;
 
@@ -30,6 +35,8 @@ public class PlayerMovment : MonoBehaviour
     public LayerMask whatIsGround;
     bool grounded;
 
+    [Header("Titan Check")]
+    public GameObject titanObj;
 
     [Header("Slope Handeling")]
     public float maxSlopeAngle;
@@ -47,16 +54,18 @@ public class PlayerMovment : MonoBehaviour
     Rigidbody rb;
 
     public MovementState state;
+
+    
     public enum MovementState
     {
         walking,
         air,
         wallrunning,
         dashing
+
     }
     public bool dashing;
     public bool wallrunning;
-
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -66,18 +75,25 @@ public class PlayerMovment : MonoBehaviour
 
     private void MyInput()
     {
-        horizontalInput = Input.GetAxisRaw("Horizontal");
-        verticalInput = Input.GetAxisRaw("Vertical");
-
-        if (Input.GetKey(KeyCode.Space) && canJump == true && grounded == true)
+        if (!GameManager.IsTitan)
         {
-            canJump = false;
+            horizontalInput = Input.GetAxisRaw("Horizontal");
+            verticalInput = Input.GetAxisRaw("Vertical");
 
-            JumpTime = true;
+            if (Input.GetKey(KeyCode.Space) && canJump == true && grounded == true)
+            {
+                canJump = false;
 
+                JumpTime = true;
+
+            }
         }
+        
 
     }
+
+
+
 
     private float desiredMoveSpeed;
     private float lastDesiredMoveSpeed;
@@ -225,32 +241,86 @@ public class PlayerMovment : MonoBehaviour
 
     private void Update()
     {
-        grounded = Physics.Raycast(transform.position, Vector3.down, playerheight * 0.5f + 0.05f, whatIsGround);
 
-        MyInput();
-        SpeedControl();
-        StateHandler();
 
-        if (state == MovementState.walking)
+
+        //if (GameManager.IsTitan)
+        //{
+        //    rb.position = GameManager.TitanLocation;
+        //    this.gameObject.transform.rotation = GameManager.TitanRotation;
+        //}
+
+
+
+
+        if(!GameManager.IsTitan)
         {
-            rb.drag = groundDrag;
+            grounded = Physics.Raycast(transform.position, Vector3.down, playerheight * 0.5f + 0.05f, whatIsGround);
+
+            MyInput();
+            SpeedControl();
+            StateHandler();
+
+            if (state == MovementState.walking)
+            {
+                rb.drag = groundDrag;
+            }
+            else
+            {
+                rb.drag = 0;
+            }
+            if (grounded)
+            {
+                ResetJump();
+            }
+            Debug.Log("grounded = " + grounded);
+            Debug.Log("dashing = " + dashing);
         }
-        else
-        {
-            rb.drag = 0;
-        }
-        if (grounded)
-        {
-            ResetJump();
-        }
-        Debug.Log("grounded = " + grounded);
-        Debug.Log("dashing = " + dashing);
+        
         
     }
+
+    private bool hasGottenOutOfTitan = true;
     private void FixedUpdate()
     {
+        GameManager.IsNearEmbarkableTitan = (titanObj.transform.position - rb.position).magnitude < 10;
+
+        if (Input.GetKeyDown(KeyCode.E) && GameManager.IsNearEmbarkableTitan)
+        {
+
+            GameManager.IsTitan = !GameManager.IsTitan;
+            rb.velocity = Vector3.zero;
+
+            
+        }
+        if (GameManager.IsTitan)
+        {
+            capsuleBut2.enabled = false;
+            capsule.enabled = false;
+            rb.position = GameManager.TitanLocation;
+            this.gameObject.transform.rotation = GameManager.TitanRotation;
+            rb.useGravity = false;
+            rb.velocity = Vector3.zero;
+        }
         
-        MovePlayer();
+        else
+        {
+            /*
+            if(!hasGottenOutOfTitan && !GameManager.IsTitan)
+            {
+                rb.position.
+            }
+            */
+            capsuleBut2.enabled = true;
+            rb.useGravity = true;
+            capsule.enabled = true;
+        }
+        
+        if (!GameManager.IsTitan)
+        {
+            MovePlayer();
+        }
+        
         
         if (JumpTime)
         {
