@@ -9,4 +9,8 @@ public class GameManager : MonoBehaviour
     public static Vector3 TitanLocation;
     public static Quaternion TitanRotation;
     public static bool IsNearEmbarkableTitan;
+
+    public static GameObject[] PlayerInv;
+    public static GameObject[] TitanInv;
+
 }
